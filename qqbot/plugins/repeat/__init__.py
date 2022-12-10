@@ -1,15 +1,18 @@
+from typing import Dict
+
 from nonebot import get_driver, on_command, on_message
 from nonebot.adapters import Message
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent
 from nonebot.matcher import Matcher
 from nonebot.params import CommandArg, EventToMe
-from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent
+
 from .config import Config
 
 config = Config.parse_obj(get_driver().config)
 
 repeat_command = on_command("repeat", priority=1)
 repeat_message = on_message(priority=100)
-last_message: dict[int, str] = {}
+last_message: Dict[int, str] = {}
 
 
 @repeat_command.handle()
