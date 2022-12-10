@@ -12,7 +12,6 @@ colorama==0.4.6
 cookiecutter==1.7.3
 fastapi==0.79.1
 h11==0.14.0
-hpack @ file:///Users/sam/Library/Caches/pypoetry/artifacts/8b/5f/66/ba0ac4374ff666ffb44b8bc8351520ae123daa9f62e19dceec5e5c18fb/hpack-4.0.0-py3-none-any.whl
 httpcore==0.16.2
 httptools==0.5.0
 httpx==0.23.1
@@ -51,7 +50,6 @@ python-slugify==7.0.0
 pytz==2022.6
 pytz-deprecation-shim==0.1.0.post0
 PyYAML==6.0
--e git+https://github.com/samzhangjy/qqbot.git@4a1a4e6ddbd8656fac755efdd17ad9eb24fb4388#egg=qqbot
 requests==2.28.1
 rfc3986==1.5.0
 six==1.16.0
