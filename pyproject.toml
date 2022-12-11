@@ -6,8 +6,12 @@ authors = []
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.7.3"
+python = "^3.10.0"
 nonebot2 = "^2.0.0-beta.1"
+chatgptpy = "^1.0.6"
+revchatgpt = "^0.0.36.1"
+fake-useragent = "^1.1.1"
+aiohttp = "^3.8.3"
 
 [tool.poetry.dev-dependencies]
 nb-cli = "^0.6.0"

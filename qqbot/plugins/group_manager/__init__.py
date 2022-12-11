@@ -3,7 +3,7 @@ import re
 
 from nonebot import on_command
 from nonebot.adapters import Message
-from nonebot.adapters.onebot.v11 import GROUP_ADMIN, Bot, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import GROUP_MEMBER, Bot, GroupMessageEvent
 from nonebot.matcher import Matcher
 from nonebot.params import CommandArg, EventToMe
 
@@ -48,7 +48,7 @@ async def handle_ban(
     if not to_me:
         return
     matcher.stop_propagation()
-    if not await GROUP_ADMIN(bot, event):
+    if await GROUP_MEMBER(bot, event):
         await bot.send_group_msg(
             group_id=event.group_id, message="Sorry, only group admins can ban members."
         )
@@ -86,7 +86,7 @@ async def handle_unban(
     if not to_me:
         return
     matcher.stop_propagation()
-    if not await GROUP_ADMIN(bot, event):
+    if await GROUP_MEMBER(bot, event):
         await bot.send_group_msg(
             group_id=event.group_id, message="Sorry, only group admins can unban members."
         )
