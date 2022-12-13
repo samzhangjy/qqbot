@@ -83,10 +83,13 @@ async def handle_command(
         )
     else:
         config.enabled_groups[event.group_id] = True
-        await bot.send_group_msg(group_id=event.group_id, message="Enabling ChatGPT...")
         if config.group_conversation_ids.get(event.group_id, None) is None:
             config.group_conversation_ids[event.group_id] = (None, None)
         await bot.send_group_msg(group_id=event.group_id, message="Enabled ChatGPT!")
+        await bot.send_group_msg(
+            group_id=event.group_id,
+            message="Note: ChatGPT has CloudFlare blocking to bots, so requests will likely fail.",
+        )
 
 
 @chatgpt_message.handle()
