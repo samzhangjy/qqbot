@@ -68,13 +68,15 @@ def random_str(num: int = 5):
     return "".join(random.sample(string.ascii_letters + string.digits, num))
 
 
-@scheduler.scheduled_job("cron", minute="*/1", timezone="Asia/Shanghai")
+@scheduler.scheduled_job("cron", minute="*/2", timezone="Asia/Shanghai")
 async def check_nickname():
     bot = nonebot.get_bot()
     groups = await bot.get_group_list()
     for group in groups:
-        users = await bot.get_group_member_list(group_id=group["group_id"])
+        users = await bot.get_group_member_list(group_id=group["group_id"], no_cache=True)
         for user in users:
+            if not user["card"]:
+                continue
             violated = checker.check(user["card"])
             if len(violated) == 0:
                 continue
