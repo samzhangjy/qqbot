@@ -97,7 +97,7 @@ async def check_spamming():
     bot = nonebot.get_bot()
     for group, counts in sent_count.items():
         for user, count in counts.items():
-            if count > 10:
+            if count > 6:
                 await bot.set_group_ban(
                     group_id=group,
                     user_id=user,
