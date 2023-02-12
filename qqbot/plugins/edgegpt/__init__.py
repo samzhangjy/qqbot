@@ -34,6 +34,7 @@ async def chat(chatbot: Chatbot, group_id: int, message: str) -> list:
         if response["author"] == "bot":
             res = response["text"]
             break
+    config.is_responding[group_id] = False
     return res
 
 
