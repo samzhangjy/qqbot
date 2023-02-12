@@ -20,11 +20,16 @@ with open("./config.json", "r", encoding="utf-8") as f:
     os.environ["BING_U"] = cookie
 
 
-async def chat(chatbot: Chatbot, message: str) -> list:
+async def chat(chatbot: Chatbot, group_id: int, message: str) -> list:
+    if config.is_responding.get(group_id, False):
+        return "Error: The last user message is being processed. Please wait for a response before submitting further messages."
+    config.is_responding[group_id] = True
     ag = chatbot.ask_stream(prompt=message)
     res = ""
     async for _, response in ag:
         res = response
+    if res["item"].get("messages", None) is None:
+        return f"Error: {res['item']['result']['message']}"
     for response in res["item"]["messages"]:
         if response["author"] == "bot":
             res = response["text"]
@@ -73,6 +78,7 @@ async def handle_message(bot: Bot, event: GroupMessageEvent):
         return
     answer = await chat(
         config.chatbots[event.group_id],
+        event.group_id,
         event.message.extract_plain_text(),
     )
     await bot.send_group_msg(
