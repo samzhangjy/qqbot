@@ -30,12 +30,21 @@ async def chat(chatbot: Chatbot, group_id: int, message: str) -> list:
         res = response
     if res["item"].get("messages", None) is None:
         return f"Error: {res['item']['result']['message']}"
+    search_results = ""
+    answer = ""
     for response in res["item"]["messages"]:
         if response["author"] == "bot":
-            res = response["text"]
+            answer = response["text"]
+            if (
+                len(response.get("adaptiveCards", [])) != 0
+                and len(response["adaptiveCards"][0].get("body", [])) > 1
+            ):
+                search_results = response["adaptiveCards"][0]["body"][-1]["text"]
             break
     config.is_responding[group_id] = False
-    return res
+    if search_results:
+        answer += "\n\n" + search_results
+    return answer
 
 
 @edgegpt.handle()
@@ -82,7 +91,16 @@ async def handle_message(bot: Bot, event: GroupMessageEvent):
         event.group_id,
         event.message.extract_plain_text(),
     )
-    await bot.send_group_msg(
-        group_id=event.group_id,
-        message=f"[CQ:reply,id={event.message_id}][CQ:at,qq={event.sender.user_id}]{answer}",
-    )
+    max_len = 400
+    chunks = [answer[i : i + max_len] for i in range(0, len(answer), max_len)]
+    for chunk in chunks:
+        retries_remain = 3
+        while retries_remain > 0:
+            try:
+                await bot.send_group_msg(
+                    group_id=event.group_id,
+                    message=f"[CQ:reply,id={event.message_id}][CQ:at,qq={event.sender.user_id}]{chunk}",
+                )
+                break
+            except:
+                retries_remain -= 1
