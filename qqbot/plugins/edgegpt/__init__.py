@@ -31,7 +31,10 @@ async def chat(chatbot: Chatbot, group_id: int, message: str) -> list:
             res = response
         if res["item"].get("messages", None) is None:
             config.is_responding[group_id] = False
-            return f"Remote error: {res['item']['result']['message']}"
+            err_msg = f"Remote error: {res['item']['result']['message']}"
+            if res["item"]["result"].get("exception", None) is not None:
+                err_msg += "\n\n" + res["item"]["result"]["exception"]
+            return err_msg
         search_results = ""
         answer = ""
         for response in res["item"]["messages"]:
@@ -78,6 +81,11 @@ async def handle_command(
         await bot.send_group_msg(
             group_id=event.group_id,
             message=f"EdgeGPT is {status_text} for group {event.group_id}.",
+        )
+    elif plain_text == "reset":
+        config.chatbots[event.group_id] = Chatbot()
+        await bot.send_group_msg(
+            group_id=event.group_id, message="EdgeGPT reset successfully."
         )
     else:
         config.enabled_groups[event.group_id] = True
