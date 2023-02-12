@@ -30,7 +30,8 @@ async def chat(chatbot: Chatbot, group_id: int, message: str) -> list:
         async for _, response in ag:
             res = response
         if res["item"].get("messages", None) is None:
-            return f"Error: {res['item']['result']['message']}"
+            config.is_responding[group_id] = False
+            return f"Remote error: {res['item']['result']['message']}"
         search_results = ""
         answer = ""
         for response in res["item"]["messages"]:
