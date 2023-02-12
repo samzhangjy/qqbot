@@ -65,6 +65,7 @@ async def handle_command(
     plain_text = args.extract_plain_text()
     if plain_text == "disable":
         config.enabled_groups[event.group_id] = False
+        config.is_responding[event.group_id] = False
         if config.chatbots.get(event.group_id, None) is not None:
             config.chatbots[event.group_id].close()
         await bot.send_group_msg(group_id=event.group_id, message="Disabled EdgeGPT.")
