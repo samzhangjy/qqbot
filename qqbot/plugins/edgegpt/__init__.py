@@ -21,30 +21,34 @@ with open("./config.json", "r", encoding="utf-8") as f:
 
 
 async def chat(chatbot: Chatbot, group_id: int, message: str) -> list:
-    if config.is_responding.get(group_id, False):
-        return "Error: The last user message is being processed. Please wait for a response before submitting further messages."
-    config.is_responding[group_id] = True
-    ag = chatbot.ask_stream(prompt=message)
-    res = ""
-    async for _, response in ag:
-        res = response
-    if res["item"].get("messages", None) is None:
-        return f"Error: {res['item']['result']['message']}"
-    search_results = ""
-    answer = ""
-    for response in res["item"]["messages"]:
-        if response["author"] == "bot":
-            answer = response["text"]
-            if (
-                len(response.get("adaptiveCards", [])) != 0
-                and len(response["adaptiveCards"][0].get("body", [])) > 1
-            ):
-                search_results = response["adaptiveCards"][0]["body"][-1]["text"]
-            break
-    config.is_responding[group_id] = False
-    if search_results:
-        answer += "\n\n" + search_results
-    return answer
+    try:
+        if config.is_responding.get(group_id, False):
+            return "Error: The last user message is being processed. Please wait for a response before submitting further messages."
+        config.is_responding[group_id] = True
+        ag = chatbot.ask_stream(prompt=message)
+        res = ""
+        async for _, response in ag:
+            res = response
+        if res["item"].get("messages", None) is None:
+            return f"Error: {res['item']['result']['message']}"
+        search_results = ""
+        answer = ""
+        for response in res["item"]["messages"]:
+            if response["author"] == "bot":
+                answer = response["text"]
+                if (
+                    len(response.get("adaptiveCards", [])) != 0
+                    and len(response["adaptiveCards"][0].get("body", [])) > 1
+                ):
+                    search_results = response["adaptiveCards"][0]["body"][-1]["text"]
+                break
+        config.is_responding[group_id] = False
+        if search_results:
+            answer += "\n\n" + search_results
+        return answer
+    except Exception as e:
+        config.is_responding[group_id] = False
+        return f"Error: {e}"
 
 
 @edgegpt.handle()
