@@ -32,7 +32,7 @@ with open("./config.json", "r", encoding="utf-8") as f:
     proxy = data["proxy"]
     os.environ["BING_U"] = cookie
     poe_client = Poe(poe_token, proxy)
-jarvis_groups = [450854560]
+jarvis_groups = [450854560, 132608658]
 
 
 async def chat(chatbot: Chatbot, group_id: int, message: str) -> list:
@@ -149,7 +149,7 @@ async def handle_message(bot: Bot, event: GroupMessageEvent):
                 retries_remain -= 1
 
 
-@scheduler.scheduled_job("date", run_date=datetime(2023, 4, 13, 21, 5))
+@scheduler.scheduled_job("date", run_date=datetime(2023, 4, 14, 9, 4))
 async def handle_job():
     bot = nonebot.get_bot()
     groups = await bot.get_group_list()
