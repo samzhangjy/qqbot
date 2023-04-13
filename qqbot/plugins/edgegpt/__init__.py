@@ -3,21 +3,36 @@ import os
 from typing import Tuple
 
 from EdgeGPT import Chatbot
-from nonebot import get_driver, on_command, on_message
+from nonebot import get_driver, on_command, on_message, require
 from nonebot.adapters import Message
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent
 from nonebot.matcher import Matcher
 from nonebot.params import CommandArg, EventToMe
+import nonebot
+from poe import Client as Poe
+
+from datetime import datetime
+
+require("nonebot_plugin_apscheduler")
+from nonebot_plugin_apscheduler import (
+    scheduler,
+)  # pylint: disable=wrong-import-order,wrong-import-position
 
 from .config import Config
+import time
 
 config = Config.parse_obj(get_driver().config)
 
 edgegpt = on_command("edgegpt", priority=1)
 edgegpt_message = on_message(priority=100)
 with open("./config.json", "r", encoding="utf-8") as f:
-    cookie = json.loads(f.read())["token"]
+    data = json.loads(f.read())
+    cookie = data["token"]
+    poe_token = data["poe-token"]
+    proxy = data["proxy"]
     os.environ["BING_U"] = cookie
+    poe_client = Poe(poe_token, proxy)
+jarvis_groups = [450854560]
 
 
 async def chat(chatbot: Chatbot, group_id: int, message: str) -> list:
@@ -55,6 +70,15 @@ async def chat(chatbot: Chatbot, group_id: int, message: str) -> list:
         return f"Error: {e}"
 
 
+async def chat_poe(message: str) -> None:
+    try:
+        for chunk in poe_client.send_message("jarvissamzhang", message):
+            pass
+        return str(chunk["text"]).strip("Jarvis:").strip()
+    except Exception as e:
+        return f"Error: {e}"
+
+
 @edgegpt.handle()
 async def handle_command(
     matcher: Matcher,
@@ -83,6 +107,7 @@ async def handle_command(
             message=f"EdgeGPT is {status_text} for group {event.group_id}.",
         )
     elif plain_text == "reset":
+        config.is_responding[event.group_id] = False
         config.chatbots[event.group_id] = Chatbot()
         await bot.send_group_msg(
             group_id=event.group_id, message="EdgeGPT reset successfully."
@@ -98,12 +123,16 @@ async def handle_command(
 
 @edgegpt_message.handle()
 async def handle_message(bot: Bot, event: GroupMessageEvent):
-    if not config.enabled_groups.get(event.group_id) or not event.to_me:
+    # if not config.enabled_groups.get(event.group_id) or not event.to_me:
+    if not config.enabled_groups.get(event.group_id):
         return
-    answer = await chat(
-        config.chatbots[event.group_id],
-        event.group_id,
-        event.message.extract_plain_text(),
+    # answer = await chat(
+    #     config.chatbots[event.group_id],
+    #     event.group_id,
+    #     event.message.extract_plain_text(),
+    # )
+    answer = await chat_poe(
+        f"{event.sender.nickname}({event.sender.user_id}): {event.message.extract_plain_text()}"
     )
     max_len = 400
     chunks = [answer[i : i + max_len] for i in range(0, len(answer), max_len)]
@@ -113,8 +142,35 @@ async def handle_message(bot: Bot, event: GroupMessageEvent):
             try:
                 await bot.send_group_msg(
                     group_id=event.group_id,
-                    message=f"[CQ:reply,id={event.message_id}][CQ:at,qq={event.sender.user_id}]{chunk}",
+                    message=f"{chunk}",
                 )
                 break
             except:
                 retries_remain -= 1
+
+
+@scheduler.scheduled_job("date", run_date=datetime(2023, 4, 13, 21, 5))
+async def handle_job():
+    bot = nonebot.get_bot()
+    groups = await bot.get_group_list()
+    for group in groups:
+        if group["group_id"] not in jarvis_groups:
+            continue
+        group_id = group["group_id"]
+        await bot.send_group_msg(
+            group_id=group_id,
+            message="Error: internal server failure, please contact cloud computing provider adminstrator for details.",
+        )
+        time.sleep(1)
+        await bot.send_group_msg(
+            group_id=group_id, message="Trying to restart server..."
+        )
+        time.sleep(5)
+        await bot.send_group_msg(group_id=group_id, message="Server restarted.")
+        time.sleep(1)
+        await bot.send_group_msg(group_id=group_id, message="Starting project Jarvis.")
+        config.enabled_groups[group_id] = True
+        await bot.send_group_msg(group_id=group_id, message="Jarvis started.")
+        poe_client.send_chat_break("jarvissamzhang")
+        answer = await chat_poe("系统: Jarvis 机器人成功启动。")
+        await bot.send_group_msg(group_id=group_id, message=answer)
