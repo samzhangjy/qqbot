@@ -32,8 +32,8 @@ with open("./config.json", "r", encoding="utf-8") as f:
     proxy = data["proxy"]
     os.environ["BING_U"] = cookie
     poe_client = Poe(poe_token, proxy)
-jarvis_groups = [450854560, 132608658]
-# jarvis_groups = [450854560]
+# jarvis_groups = [450854560, 132608658]
+jarvis_groups = [450854560]
 
 
 async def chat(chatbot: Chatbot, group_id: int, message: str) -> list:
