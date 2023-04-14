@@ -73,7 +73,7 @@ async def chat(chatbot: Chatbot, group_id: int, message: str) -> list:
 
 async def chat_poe(message: str) -> None:
     try:
-        for chunk in poe_client.send_message("jarvissamzhang", message):
+        for chunk in poe_client.send_message("jarvissamzhang", message, timeout=120):
             pass
         return str(chunk["text"]).strip("Jarvis:").strip()
     except Exception as e:
