@@ -33,6 +33,7 @@ with open("./config.json", "r", encoding="utf-8") as f:
     os.environ["BING_U"] = cookie
     poe_client = Poe(poe_token, proxy)
 jarvis_groups = [450854560, 132608658]
+# jarvis_groups = [450854560]
 
 
 async def chat(chatbot: Chatbot, group_id: int, message: str) -> list:
@@ -108,6 +109,7 @@ async def handle_command(
         )
     elif plain_text == "reset":
         config.is_responding[event.group_id] = False
+        poe_client.send_chat_break("jarvissamzhang")
         config.chatbots[event.group_id] = Chatbot()
         await bot.send_group_msg(
             group_id=event.group_id, message="EdgeGPT reset successfully."
@@ -149,7 +151,7 @@ async def handle_message(bot: Bot, event: GroupMessageEvent):
                 retries_remain -= 1
 
 
-@scheduler.scheduled_job("date", run_date=datetime(2023, 4, 14, 9, 4))
+@scheduler.scheduled_job("date", run_date=datetime(2023, 4, 14, 20, 16))
 async def handle_job():
     bot = nonebot.get_bot()
     groups = await bot.get_group_list()
